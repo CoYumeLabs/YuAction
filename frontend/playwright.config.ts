@@ -30,25 +30,37 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "cd ../backend && go test -tags=e2e ./internal/app -run '^TestBrowserFixture$' -v -timeout 0",
+        "cd ../backend && go test -tags=e2e ./internal/app -run TestBrowserFixture -v -timeout 0",
       url: "http://127.0.0.1:18086/api/health",
       reuseExistingServer: false,
       timeout: 120000,
     },
     {
-      command: "API_TARGET=http://127.0.0.1:18086 npm run dev -- --port 5176",
+      command: "npm run dev -- --port 5176",
+      env: { API_TARGET: "http://127.0.0.1:18086" },
       url: "http://127.0.0.1:5176",
       reuseExistingServer: false,
     },
     {
-      command:
-        "cd ../backend && YUACTION_DEMO=true LISTEN_ADDR=127.0.0.1:18084 go run ./cmd/server",
+      command: "cd ../backend && go run ./cmd/server",
+      env: {
+        YUACTION_DEMO: "true",
+        LISTEN_ADDR: "127.0.0.1:18084",
+        YUFOLO_URL: "",
+        DATABASE_URL: "",
+        YUACTION_CREATOR_KEY: "",
+        OPENAI_API_KEY: "",
+        OPENAI_API_KEYs: "",
+        OPENAI_EMBEDDING_API_KEY: "",
+        OPENAI_MODEL: "",
+      },
       url: "http://127.0.0.1:18084/api/health",
       reuseExistingServer: false,
       timeout: 120000,
     },
     {
-      command: "API_TARGET=http://127.0.0.1:18084 npm run dev -- --port 5175",
+      command: "npm run dev -- --port 5175",
+      env: { API_TARGET: "http://127.0.0.1:18084" },
       url: "http://127.0.0.1:5175",
       reuseExistingServer: false,
     },

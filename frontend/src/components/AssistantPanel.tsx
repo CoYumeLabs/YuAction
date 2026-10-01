@@ -151,6 +151,29 @@ export default function AssistantPanel({
                 </select>
               </label>
             )}
+            <label>
+              AI 回答预设
+              <select
+                aria-label="AI 回答预设"
+                value={settings.answerPreset || "bilingual"}
+                disabled={busy}
+                onChange={(e) => {
+                  setMessage("");
+                  setSettings({
+                    ...settings,
+                    answerPreset: e.target
+                      .value as AssistantSettings["answerPreset"],
+                  });
+                }}
+              >
+                <option value="bilingual">中英双语</option>
+                <option value="chinese-only">仅中文</option>
+              </select>
+            </label>
+            <p className="form-note">
+              预设保留下方自定义提示词，同时应用于通用与知识库回答，优先于其中的语言要求。保存后原草稿与来源仍可查看；重新生成需手动点击并使用
+              AI 额度。不影响字幕译文。
+            </p>
             <label className="check-label">
               <input
                 type="checkbox"
@@ -207,13 +230,16 @@ export default function AssistantPanel({
                       api(`${base}/settings`, {
                         method: "PUT",
                         key: hostKey,
-                        body: settings,
+                        body: {
+                          ...settings,
+                          answerPreset: settings.answerPreset || "bilingual",
+                        },
                       }),
                     "设置已保存。",
                   )
                 }
               >
-                保存回答设置
+                {busy ? "处理中…" : "保存回答设置"}
               </Button>
               <Button
                 className="text small"

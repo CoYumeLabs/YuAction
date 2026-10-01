@@ -406,7 +406,7 @@ func (s *Server) startYufoloAnswer(code, id string) error {
 		cancel()
 		return err
 	}
-	draft := answerDraft{QuestionID: id, Generic: draftPart{Status: "processing"}, Knowledge: draftPart{Status: "processing"}, UpdatedAt: time.Now().UTC()}
+	draft := answerDraft{QuestionID: id, AnswerPreset: settings.AnswerPreset, Generic: draftPart{Status: "processing"}, Knowledge: draftPart{Status: "processing"}, UpdatedAt: time.Now().UTC()}
 	if err = s.savePrivate(ctx, rec, draft); err != nil {
 		cancel()
 		return err
@@ -422,12 +422,12 @@ func (s *Server) startYufoloAnswer(code, id string) error {
 		defer cancel()
 		generic := make(chan draftPart, 1)
 		go func() {
-			generic <- s.yufoloAnswer(ctx, a, question, settings.GenericPrompt, "", "", settings.TopK, "yuaction-"+requestID+"-generic")
+			generic <- s.yufoloAnswer(ctx, a, question, answerPrompt(settings.GenericPrompt, settings.AnswerPreset), "", "", settings.TopK, "yuaction-"+requestID+"-generic")
 		}()
 		if settings.ProjectID == "" {
 			draft.Knowledge = draftPart{Status: "empty", Error: "上传资料或关联 Yufolo 知识库后，可生成资料回答"}
 		} else {
-			draft.Knowledge = s.yufoloAnswer(ctx, a, question, strings.ReplaceAll(settings.KBPrompt, "%s", "（使用本次检索附带的资料）"), settings.ProjectID, link.Link.SessionID, settings.TopK, "yuaction-"+requestID+"-knowledge")
+			draft.Knowledge = s.yufoloAnswer(ctx, a, question, answerPrompt(strings.ReplaceAll(settings.KBPrompt, "%s", "（使用本次检索附带的资料）"), settings.AnswerPreset), settings.ProjectID, link.Link.SessionID, settings.TopK, "yuaction-"+requestID+"-knowledge")
 		}
 		draft.Generic = <-generic
 		draft.UpdatedAt = time.Now().UTC()

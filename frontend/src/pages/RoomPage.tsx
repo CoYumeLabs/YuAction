@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { api, type Room, type Segment } from "../api";
+import { api, isUnresolvedQuestion, type Room, type Segment } from "../api";
 import { useRoom } from "../useRoom";
 import { useConfig } from "../hooks/useConfig";
 import {
@@ -27,6 +27,7 @@ import {
 import Captions from "../components/Captions";
 import Share from "../components/Share";
 import QuestionCard from "../components/QuestionCard";
+import QuestionGroups from "../components/QuestionGroups";
 import TranscriptionPanel from "../components/TranscriptionPanel";
 import AssistantPanel from "../components/AssistantPanel";
 import { useAssistant } from "../useAssistant";
@@ -121,6 +122,25 @@ export default function RoomPage({
     .slice()
     .reverse();
   const showing = room.questions.find((q) => q.status === "showing");
+  const unresolved = room.questions.filter(isUnresolvedQuestion).length;
+  const renderQuestion = (q: Room["questions"][number]) => (
+    <QuestionCard
+      question={q}
+      key={q.id}
+      host={host}
+      disabled={busy || room.status !== "live"}
+      aiEnabled={assistant.info?.configured}
+      draft={assistant.info?.answers.find((a) => a.questionId === q.id)}
+      onGenerate={() => void assistant.generate(q.id)}
+      onDelete={() => {
+        if (confirm("删除这个问题及其 AI 草稿？"))
+          void mutate(`/questions/${q.id}`, undefined, "DELETE");
+      }}
+      onStatus={(status) =>
+        void mutate(`/questions/${q.id}`, { status }, "PATCH")
+      }
+    />
+  );
   return (
     <div className={`room-page ${host ? "host-page" : "participant-page"}`}>
       <header className="room-topbar">
@@ -239,13 +259,8 @@ export default function RoomPage({
                 <CircleHelp size={20} />
               </span>
               <span>
-                等待回应
-                <strong>
-                  {room.questions
-                    .filter((q) => q.status === "pending")
-                    .length.toString()
-                    .padStart(2, "0")}
-                </strong>
+                未解答（含正在展示）
+                <strong>{unresolved.toString().padStart(2, "0")}</strong>
               </span>
             </div>
             <div>
@@ -338,49 +353,40 @@ export default function RoomPage({
                 </h3>
                 <MessageCircle size={18} />
               </div>
-              <div className="tabs">
-                {[
-                  ["all", "全部"],
-                  ["pending", "待回应"],
-                  ["showing", "正在展示"],
-                  ["answered", "已解答"],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    className={filter === value ? "selected" : ""}
-                    aria-pressed={filter === value}
-                    onClick={() => setFilter(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {questions.length ? (
-                <div className="question-list">
-                  {questions.map((q) => (
-                    <QuestionCard
-                      question={q}
-                      key={q.id}
-                      host={host}
-                      disabled={busy || room.status !== "live"}
-                      aiEnabled={assistant.info?.configured}
-                      draft={assistant.info?.answers.find(
-                        (a) => a.questionId === q.id,
-                      )}
-                      onGenerate={() => void assistant.generate(q.id)}
-                      onDelete={() => {
-                        if (confirm("删除这个问题及其 AI 草稿？"))
-                          void mutate(
-                            `/questions/${q.id}`,
-                            undefined,
-                            "DELETE",
-                          );
-                      }}
-                      onStatus={(status) =>
-                        void mutate(`/questions/${q.id}`, { status }, "PATCH")
-                      }
-                    />
+              {!host && (
+                <div className="tabs">
+                  {[
+                    ["all", "全部"],
+                    ["pending", "待回应"],
+                    ["showing", "正在展示"],
+                    ["answered", "已解答"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={filter === value ? "selected" : ""}
+                      aria-pressed={filter === value}
+                      onClick={() => setFilter(value)}
+                    >
+                      {label}
+                    </button>
                   ))}
+                </div>
+              )}
+              {host ? (
+                <QuestionGroups
+                  key={code}
+                  code={code}
+                  hostKey={hostKey}
+                  questions={room.questions}
+                  visibleQuestions={questions.filter(isUnresolvedQuestion)}
+                  answeredQuestions={questions.filter(
+                    (q) => q.status === "answered",
+                  )}
+                  renderQuestion={renderQuestion}
+                />
+              ) : questions.length ? (
+                <div className="question-list">
+                  {questions.map(renderQuestion)}
                 </div>
               ) : (
                 <Empty
