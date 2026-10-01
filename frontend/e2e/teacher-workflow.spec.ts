@@ -1,5 +1,68 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test("legacy custom prompts keep their language when unrelated settings are saved", async ({
+  page,
+}) => {
+  const { base, code, key } = await classroom(page);
+  const legacy = {
+    projectId: "",
+    autoAnswer: false,
+    topK: 3,
+    genericPrompt: "仅用中文讲解，保留 API 等必要术语。",
+    kbPrompt: "只依据 %s 用中文回答，保留 [1] 引用。",
+  };
+  expect(
+    (
+      await page.request.put(`${base}/assistant/settings`, {
+        headers: { Authorization: `Bearer ${key}` },
+        data: legacy,
+      })
+    ).ok(),
+  ).toBeTruthy();
+  await page.goto(`/rooms/${code}/host`);
+  await page.getByText("知识库与回答设置", { exact: true }).click();
+  const preset = page.getByLabel("AI 回答预设");
+  await expect(preset).toHaveValue("");
+  await expect(preset.locator("option:checked")).toHaveText(
+    "沿用现有提示词（未选择预设）",
+  );
+  await page.getByLabel("检索片段数量").fill("4");
+  await page.getByRole("button", { name: "保存回答设置" }).click();
+  await expect(page.getByText("设置已保存。")).toBeVisible();
+  const saved = await (
+    await page.request.get(`${base}/assistant`, {
+      headers: { Authorization: `Bearer ${key}` },
+    })
+  ).json();
+  expect(saved.settings).toMatchObject({
+    ...legacy,
+    topK: 4,
+    answerPreset: "",
+  });
+  await page.reload();
+  await page.getByText("知识库与回答设置", { exact: true }).click();
+  await expect(preset).toHaveValue("");
+  await preset.selectOption("chinese-only");
+  await expect(page.getByLabel("通用回答提示词")).toHaveValue(
+    legacy.genericPrompt,
+  );
+  await expect(page.getByLabel("知识库回答提示词")).toHaveValue(
+    legacy.kbPrompt,
+  );
+  await page.getByRole("button", { name: "保存回答设置" }).click();
+  await expect(page.getByText("设置已保存。")).toBeVisible();
+  const explicit = await (
+    await page.request.get(`${base}/assistant`, {
+      headers: { Authorization: `Bearer ${key}` },
+    })
+  ).json();
+  expect(explicit.settings).toMatchObject({
+    ...legacy,
+    topK: 4,
+    answerPreset: "chinese-only",
+  });
+});
+
 async function classroom(page: Page) {
   await page.goto("/");
   const response = await page.request.post("/api/rooms", {

@@ -165,7 +165,7 @@ test("Yufolo knowledge upload, private automatic AI drafts, indexing and deletio
   await expect(page.getByText("lecture.txt", { exact: true })).toBeVisible();
   await page.getByText("知识库与回答设置", { exact: true }).click();
   await page.getByLabel("收到新问题时自动生成 AI 建议").check();
-  await expect(page.getByLabel("AI 回答预设")).toHaveValue("bilingual");
+  await expect(page.getByLabel("AI 回答预设")).toHaveValue("");
   await page
     .getByLabel("知识库回答提示词")
     .fill("只依据 %s 中的教学资料，附上引用。");
@@ -212,7 +212,9 @@ test("Yufolo knowledge upload, private automatic AI drafts, indexing and deletio
   await expect(
     page.getByText("根据讲义，设计思维从理解用户开始。"),
   ).toBeVisible();
-  await expect(page.getByText("生成时的回答语言：中英双语")).toBeVisible();
+  await expect(
+    page.getByText("生成时的回答语言：默认 / 自定义提示词"),
+  ).toBeVisible();
   await page.reload();
   await page.getByText("知识库与回答设置", { exact: true }).click();
   await expect(page.getByLabel("AI 回答预设")).toHaveValue("chinese-only");

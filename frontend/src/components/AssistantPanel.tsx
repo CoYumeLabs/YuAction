@@ -155,7 +155,7 @@ export default function AssistantPanel({
               AI 回答预设
               <select
                 aria-label="AI 回答预设"
-                value={settings.answerPreset || "bilingual"}
+                value={settings.answerPreset || ""}
                 disabled={busy}
                 onChange={(e) => {
                   setMessage("");
@@ -166,6 +166,9 @@ export default function AssistantPanel({
                   });
                 }}
               >
+                <option value="" disabled>
+                  沿用现有提示词（未选择预设）
+                </option>
                 <option value="bilingual">中英双语</option>
                 <option value="chinese-only">仅中文</option>
               </select>
@@ -230,10 +233,7 @@ export default function AssistantPanel({
                       api(`${base}/settings`, {
                         method: "PUT",
                         key: hostKey,
-                        body: {
-                          ...settings,
-                          answerPreset: settings.answerPreset || "bilingual",
-                        },
+                        body: settings,
                       }),
                     "设置已保存。",
                   )
