@@ -13,12 +13,14 @@ export type DraftPart = {
   }[];
 };
 export type AnswerDraft = {
+  answerPreset?: "bilingual" | "chinese-only" | "";
   questionId: string;
   generic: DraftPart;
   knowledge: DraftPart;
   updatedAt: string;
 };
 export type AssistantSettings = {
+  answerPreset: "bilingual" | "chinese-only" | "";
   autoAnswer: boolean;
   genericPrompt: string;
   kbPrompt: string;

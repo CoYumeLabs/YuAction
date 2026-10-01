@@ -2528,3 +2528,52 @@ footer > span:first-child {
 .dialog-panel::backdrop { background: #17132170; }
 .question-actions { flex-wrap: wrap; }
 @media (max-width: 640px) { .assistant-panel { padding: 18px; } .assistant-actions .button { max-width: 100%; } }
+.grouping-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.question-group {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+}
+.question-group h4 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--purple);
+}
+.answered-questions {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.answered-questions > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 24px;
+  min-height: 44px;
+  line-height: 44px;
+}
+.answered-questions[open] > summary {
+  margin-bottom: 16px;
+}
+.questions-panel > .grouping-toolbar,
+.questions-panel > .form-note,
+.unresolved-questions > h4,
+.questions-panel .question-list > h4 {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.questions-panel .question-group {
+  margin: 0 16px;
+}
+@media (max-width: 600px) {
+  .grouping-toolbar .button {
+    min-height: 44px;
+  }
+}

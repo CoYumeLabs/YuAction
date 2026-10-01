@@ -165,6 +165,10 @@ test("Yufolo knowledge upload, private automatic AI drafts, indexing and deletio
   await expect(page.getByText("lecture.txt", { exact: true })).toBeVisible();
   await page.getByText("知识库与回答设置", { exact: true }).click();
   await page.getByLabel("收到新问题时自动生成 AI 建议").check();
+  await expect(page.getByLabel("AI 回答预设")).toHaveValue("");
+  await page
+    .getByLabel("知识库回答提示词")
+    .fill("只依据 %s 中的教学资料，附上引用。");
   await page.getByLabel("通用回答提示词").fill("请给出适合教学的例子。");
   await page.getByRole("button", { name: "保存回答设置" }).click();
   await expect(page.getByText("设置已保存。")).toBeVisible();
@@ -191,11 +195,73 @@ test("Yufolo knowledge upload, private automatic AI drafts, indexing and deletio
   await expect(
     guest.getByText("根据讲义，设计思维从理解用户开始。"),
   ).toHaveCount(0);
-  await page.reload();
-  await page.getByText("知识库与回答设置", { exact: true }).click();
+  await expect(page.locator(".unresolved-questions > h4")).toHaveText(
+    "未解答（1）",
+  );
+  await expect(page.locator(".question-card")).toHaveCount(1);
+  await expect(page.locator(".question-card.pending")).toHaveCount(1);
+  await page.getByLabel("AI 回答预设").selectOption("chinese-only");
   await expect(page.getByLabel("通用回答提示词")).toHaveValue(
     "请给出适合教学的例子。",
   );
+  await expect(page.getByLabel("知识库回答提示词")).toHaveValue(
+    "只依据 %s 中的教学资料，附上引用。",
+  );
+  await page.getByRole("button", { name: "保存回答设置" }).click();
+  await expect(page.getByText(/回答语言设置已变更/).first()).toBeVisible();
+  await expect(
+    page.getByText("根据讲义，设计思维从理解用户开始。"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("生成时的回答语言：默认 / 自定义提示词"),
+  ).toBeVisible();
+  await page.reload();
+  await page.getByText("知识库与回答设置", { exact: true }).click();
+  await expect(page.getByLabel("AI 回答预设")).toHaveValue("chinese-only");
+  await expect(page.getByLabel("通用回答提示词")).toHaveValue(
+    "请给出适合教学的例子。",
+  );
+  await expect(page.getByText(/回答语言设置已变更/).first()).toBeVisible();
+  await page
+    .getByRole("button", { name: "重新生成 AI 建议", exact: true })
+    .click();
+  await expect(page.getByText("生成时的回答语言：仅中文")).toBeVisible();
+  await expect(page.getByText(/回答语言设置已变更/)).toHaveCount(0);
+  await expect(
+    page.getByText("根据讲义，设计思维从理解用户开始。"),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/teacher-preset-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({
+    path: "test-results/teacher-preset-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByLabel("AI 回答预设").selectOption("bilingual");
+  await expect(page.getByLabel("通用回答提示词")).toHaveValue(
+    "请给出适合教学的例子。",
+  );
+  await expect(page.getByLabel("知识库回答提示词")).toHaveValue(
+    "只依据 %s 中的教学资料，附上引用。",
+  );
+  await page.getByRole("button", { name: "保存回答设置" }).click();
+  await expect(page.getByText(/回答语言设置已变更/).first()).toBeVisible();
+  await expect(page.getByText("生成时的回答语言：仅中文")).toBeVisible();
+  await page
+    .getByRole("button", { name: "重新生成 AI 建议", exact: true })
+    .click();
+  await expect(page.getByText("生成时的回答语言：中英双语")).toBeVisible();
+  await expect(
+    page.getByText("根据讲义，设计思维从理解用户开始。"),
+  ).toBeVisible();
   page.on("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "删除资料 lecture.txt" }).click();
   await expect(page.locator(".document-list")).toHaveCount(0);

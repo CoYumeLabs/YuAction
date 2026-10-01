@@ -6,6 +6,9 @@ export type Question = {
   quotedText?: string;
   createdAt: string;
 };
+export function isUnresolvedQuestion(q: Pick<Question, "status">) {
+  return q.status === "pending" || q.status === "showing";
+}
 export type Segment = {
   id: string;
   text: string;

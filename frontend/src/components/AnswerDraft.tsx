@@ -46,6 +46,14 @@ export default function AnswerDraft({ draft }: { draft: Draft }) {
   return (
     <details className="answer-draft" open>
       <summary>AI 回答参考 · 仅主持人可见</summary>
+      <p className="form-note">
+        生成时的回答语言：
+        {draft.answerPreset === "chinese-only"
+          ? "仅中文"
+          : draft.answerPreset === "bilingual"
+            ? "中英双语"
+            : "默认 / 自定义提示词"}
+      </p>
       <div className="draft-grid">
         <Part title="通用建议" part={draft.generic} />
         <Part title="知识库回答" part={draft.knowledge} />

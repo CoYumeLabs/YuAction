@@ -88,6 +88,8 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("PATCH /api/rooms/{code}/questions/{id}", s.questionStatus)
 	m.HandleFunc("DELETE /api/rooms/{code}/questions/{id}", s.deleteQuestion)
 	m.HandleFunc("GET /api/rooms/{code}/assistant", s.assistantInfo)
+	m.HandleFunc("GET /api/rooms/{code}/assistant/question-groups", s.questionGroups)
+	m.HandleFunc("POST /api/rooms/{code}/assistant/question-groups", s.questionGroups)
 	m.HandleFunc("GET /api/rooms/{code}/assistant/projects", s.assistantProjects)
 	m.HandleFunc("POST /api/rooms/{code}/assistant/index-preview", s.assistantIndexPreview)
 	m.HandleFunc("POST /api/rooms/{code}/assistant/index", s.assistantIndex)
